@@ -90,31 +90,45 @@ class TestMQTT(unittest.TestCase):
     def test_service_call_with_payload_doesnt_render_template(self):
         """Test the service call with unrendered template.
 
-        If a 'payload' is provided then use that instead of 'payload_template'.
+        If both 'payload' and 'payload_template' are provided then fail.
         """
         payload = "not a template"
         payload_template = "a template"
-        # Call the service directly because the helper functions don't allow
-        # you to provide payload AND payload_template.
         self.hass.services.call(mqtt.DOMAIN, mqtt.SERVICE_PUBLISH, {
             mqtt.ATTR_TOPIC: "test/topic",
             mqtt.ATTR_PAYLOAD: payload,
             mqtt.ATTR_PAYLOAD_TEMPLATE: payload_template
         }, blocking=True)
-        self.assertTrue(mqtt.MQTT_CLIENT.publish.called)
-        self.assertEqual(mqtt.MQTT_CLIENT.publish.call_args[0][1], payload)
+        self.assertFalse(mqtt.MQTT_CLIENT.publish.called)
 
     def test_service_call_without_payload_or_payload_template(self):
         """Test the service call without payload or payload template.
 
-        If neither 'payload' or 'payload_template' is provided then fail.
+        Send empty message if neither 'payload' nor 'payload_template'
+        are provided.
         """
         # Call the service directly because the helper functions require you to
         # provide a payload.
         self.hass.services.call(mqtt.DOMAIN, mqtt.SERVICE_PUBLISH, {
             mqtt.ATTR_TOPIC: "test/topic"
         }, blocking=True)
-        self.assertFalse(mqtt.MQTT_CLIENT.publish.called)
+        self.assertTrue(mqtt.MQTT_CLIENT.publish.called)
+        self.assertEqual(mqtt.MQTT_CLIENT.publish.call_args[0][1], "")
+
+    def test_service_call_with_ascii_qos_retain_flags(self):
+        """Test the service call with args that can be misinterpreted.
+
+        Empty payload message and ascii formatted qos and retain flags.
+        """
+        self.hass.services.call(mqtt.DOMAIN, mqtt.SERVICE_PUBLISH, {
+            mqtt.ATTR_TOPIC: "test/topic",
+            mqtt.ATTR_PAYLOAD: "",
+            mqtt.ATTR_QOS: '2',
+            mqtt.ATTR_RETAIN: 'no'
+        }, blocking=True)
+        self.assertTrue(mqtt.MQTT_CLIENT.publish.called)
+        self.assertEqual(mqtt.MQTT_CLIENT.publish.call_args[0][2], 2)
+        self.assertFalse(mqtt.MQTT_CLIENT.publish.call_args[0][3])
 
     def test_subscribe_topic(self):
         """Test the subscription of a topic."""

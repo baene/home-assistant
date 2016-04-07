@@ -143,10 +143,19 @@ class MockHTTP(object):
 class MockModule(object):
     """Representation of a fake module."""
 
-    def __init__(self, domain=None, dependencies=[], setup=None):
+    def __init__(self, domain=None, dependencies=None, setup=None,
+                 requirements=None, config_schema=None, platform_schema=None):
         """Initialize the mock module."""
         self.DOMAIN = domain
-        self.DEPENDENCIES = dependencies
+        self.DEPENDENCIES = dependencies or []
+        self.REQUIREMENTS = requirements or []
+
+        if config_schema is not None:
+            self.CONFIG_SCHEMA = config_schema
+
+        if platform_schema is not None:
+            self.PLATFORM_SCHEMA = platform_schema
+
         # Setup a mock setup if none given.
         if setup is None:
             self.setup = lambda hass, config: True
@@ -157,10 +166,14 @@ class MockModule(object):
 class MockPlatform(object):
     """Provide a fake platform."""
 
-    def __init__(self, setup_platform=None, dependencies=[]):
+    def __init__(self, setup_platform=None, dependencies=None,
+                 platform_schema=None):
         """Initialize the platform."""
-        self.DEPENDENCIES = dependencies
+        self.DEPENDENCIES = dependencies or []
         self._setup_platform = setup_platform
+
+        if platform_schema is not None:
+            self.PLATFORM_SCHEMA = platform_schema
 
     def setup_platform(self, hass, config, add_devices, discovery_info=None):
         """Setup the platform."""
