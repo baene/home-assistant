@@ -21,6 +21,7 @@ COMPONENTS_WITH_DEMO_PLATFORM = [
     'camera',
     'device_tracker',
     'garage_door',
+    'hvac',
     'light',
     'lock',
     'media_player',
@@ -136,7 +137,7 @@ def setup(hass, config):
                                              'Home Alone']},
           'who_cooks': {'icon': 'mdi:panda',
                         'initial': 'Anne Therese',
-                        'name': 'Who cooks today',
+                        'name': 'Cook today',
                         'options': ['Paulus', 'Anne Therese']}}})
     # Set up input boolean
     bootstrap.setup_component(
@@ -144,6 +145,11 @@ def setup(hass, config):
         {'input_boolean': {'notify': {'icon': 'mdi:car',
                                       'initial': False,
                                       'name': 'Notify Anne Therese is home'}}})
+    # Set up weblink
+    bootstrap.setup_component(
+        hass, 'weblink',
+        {'weblink': {'entities': [{'name': 'Router',
+                                   'url': 'http://192.168.1.1'}]}})
     # Setup configurator
     configurator_ids = []
 
